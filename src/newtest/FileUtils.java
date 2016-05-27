@@ -1,0 +1,83 @@
+package newtest;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.io.Serializable;
+
+import it.unisa.dia.gas.jpbc.Element;
+import it.unisa.dia.gas.jpbc.Field;
+
+/**
+ * <br/>CSDN主页：<a href="http://my.csdn.net/y1193329479">CSDN主页</a>
+ * <br/>Copyright (C), 2016-2017, YYB , Thomas
+ * <br/>This program is protected by copyright laws.
+ * <br/>Programe Name:
+ * <br/>Date: 2016年5月27日  Time: 下午4:51:09   Locate:149
+ * <br/>fileName: FileUtils.java
+ * @author yyb zgsoft_happy@126.com
+ * @version 1.0
+ * description：主要是对文件的一些操作。
+ */
+
+public class FileUtils implements Serializable {
+
+	public static final long serialVersionUID = 1L;
+	
+	/**
+	 * 获得文件所包含的数据块数量
+	 * @param filename
+	 * @return
+	 * @author: YYB
+	 * @Time: 下午5:04:12
+	 */
+	public static int getBlockNumOfFile(String filename)
+	{
+		File file = new File(filename);
+		long fileLength = file.length();
+		int result = (int) (fileLength / BaseParams.blockSize);
+		int remain = (int) (fileLength % BaseParams.blockSize);
+		return remain > 0 ? result + 1 : result;
+	}
+	
+	public static Element[] getBlockDatasFromFile(String filename , Field Zn)
+	{
+		int num = getBlockNumOfFile(filename);
+		Element[] data = new Element[num];
+		RandomAccessFile raf = null;
+		try {
+			raf = new RandomAccessFile(filename, "r");
+			byte[] buffer = new byte[BaseParams.blockSize];
+			for (int i = 0 ; i < num - 1 ; i++)
+			{
+				raf.read(buffer);
+				data[i] = Zn.newElementFromBytes(buffer);
+			}
+			int remain = raf.read(buffer);
+			if(remain < BaseParams.blockSize)
+			{
+				for ( int i = remain ; i < BaseParams.blockSize ; i++)
+				{
+					buffer[i] = 0;
+				}
+			}
+			data[num - 1] = Zn.newElementFromBytes(buffer);
+			System.out.println("获取文件分块数据成功！");
+			return data;
+		} catch (IOException e) {
+			System.out.println("获得文件的块数据时没有找到文件或者其他IO异常");
+			e.printStackTrace();
+		}finally {
+			try {
+				raf.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+	
+}
+
