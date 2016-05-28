@@ -5,9 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
+import java.math.BigInteger;
 
 import it.unisa.dia.gas.jpbc.Element;
 import it.unisa.dia.gas.jpbc.Field;
+import it.unisa.dia.gas.jpbc.Pairing;
 
 /**
  * <br/>CSDN主页：<a href="http://my.csdn.net/y1193329479">CSDN主页</a>
@@ -77,6 +79,29 @@ public class FileUtils implements Serializable {
 			}
 		}
 		return null;
+	}
+	
+	public static BigInteger[] genTagsOfFile(String filename , Users user)
+	{
+		Pairing pairing = user.getMyPairing();
+		Field Zn = pairing.getZr();
+		Element[] blocks = getBlockDatasFromFile(filename, Zn);
+		
+		//下面是为文件的数据块产生标签过程
+		BigInteger sk = user.getMySk();
+		BigInteger gen1 = user.getMyGen1();
+		BigInteger[] tags = new BigInteger[blocks.length];
+		for (int i = 0 ; i < tags.length ; i++)
+		{
+			tags[i] = new BigInteger(user.getMyG1().newElementFromBytes(gen1.toByteArray())
+					.pow(new BigInteger(blocks[i].toBytes()))
+					.pow(sk).toBytes());
+			if(i % 30 == 0)
+			{
+				System.out.println("30的倍数，休息一下，你放心！");
+			}
+		}
+		return tags;
 	}
 	
 }
