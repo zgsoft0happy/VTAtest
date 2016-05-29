@@ -47,6 +47,7 @@ public class FileUtils implements Serializable {
 	{
 		int num = getBlockNumOfFile(filename);
 		Element[] data = new Element[num];
+		int size = BaseParams.blockSize;
 		RandomAccessFile raf = null;
 		try {
 			raf = new RandomAccessFile(filename, "r");
@@ -54,7 +55,7 @@ public class FileUtils implements Serializable {
 			for (int i = 0 ; i < num - 1 ; i++)
 			{
 				raf.read(buffer);
-				data[i] = Zn.newElementFromBytes(buffer);
+				data[i] = Zn.newElementFromHash(buffer , 0 , size).getImmutable();
 			}
 			int remain = raf.read(buffer);
 			if(remain < BaseParams.blockSize)
@@ -64,7 +65,7 @@ public class FileUtils implements Serializable {
 					buffer[i] = 0;
 				}
 			}
-			data[num - 1] = Zn.newElementFromBytes(buffer);
+			data[num - 1] = Zn.newElementFromHash(buffer , 0 , size).getImmutable();
 			System.out.println("获取文件分块数据成功！");
 			return data;
 		} catch (IOException e) {
@@ -81,21 +82,19 @@ public class FileUtils implements Serializable {
 		return null;
 	}
 	
-	public static BigInteger[] genTagsOfFile(String filename , Users user)
+	public static Element[] genTagsOfFile(String filename , Users user)
 	{
 		Pairing pairing = user.getMyPairing();
 		Field Zn = pairing.getZr();
 		Element[] blocks = getBlockDatasFromFile(filename, Zn);
 		
 		//下面是为文件的数据块产生标签过程
-		BigInteger sk = user.getMySk();
-		BigInteger gen1 = user.getMyGen1();
-		BigInteger[] tags = new BigInteger[blocks.length];
+		Element sk = user.getMySk().getImmutable();
+		Element gen1 = user.getMyGen1().getImmutable();
+		Element[] tags = new Element[blocks.length];
 		for (int i = 0 ; i < tags.length ; i++)
 		{
-			tags[i] = new BigInteger(user.getMyG1().newElementFromBytes(gen1.toByteArray())
-					.pow(new BigInteger(blocks[i].toBytes()))
-					.pow(sk).toBytes());
+			tags[i] = gen1.duplicate().powZn(blocks[i].duplicate()).powZn(sk.duplicate());
 			if(i % 30 == 0)
 			{
 				System.out.println("30的倍数，休息一下，你放心！");

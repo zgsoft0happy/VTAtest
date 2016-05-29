@@ -145,7 +145,7 @@ public class Users implements Serializable {
 	 * @author: YYB
 	 * @Time: 下午7:45:38
 	 */
-	public BigInteger getMyPk()
+	public Element getMyPk()
 	{
 		return this.getUserPk(this);
 	}
@@ -156,9 +156,9 @@ public class Users implements Serializable {
 	 * @author: YYB
 	 * @Time: 下午7:44:48
 	 */
-	public BigInteger getUserPk(Users user)
+	public Element getUserPk(Users user)
 	{
-		return user.getPublicMeta().getPk();
+		return user.getMyG2().newElementFromBytes(user.getPublicMeta().getPk().toByteArray()).getImmutable();
 	}
 	/**
 	 * 获得用户自己的群G2的生成元
@@ -166,7 +166,7 @@ public class Users implements Serializable {
 	 * @author: YYB
 	 * @Time: 下午7:42:45
 	 */
-	public BigInteger getMyGen2()
+	public Element getMyGen2()
 	{
 		return this.getUserGen2(this);
 	}
@@ -177,9 +177,9 @@ public class Users implements Serializable {
 	 * @author: YYB
 	 * @Time: 下午7:40:46
 	 */
-	public BigInteger getUserGen2(Users user)
+	public Element getUserGen2(Users user)
 	{
-		return user.getPublicMeta().getGen2();
+		return user.getMyG2().newElementFromBytes(user.getPublicMeta().getGen2().toByteArray()).getImmutable();
 	}
 	/**
 	 * 获得用户自己的群G1的生成元
@@ -187,9 +187,9 @@ public class Users implements Serializable {
 	 * @author: YYB
 	 * @Time: 下午7:39:41
 	 */
-	public BigInteger getMyGen1()
+	public Element getMyGen1()
 	{
-		return this.getPublicMeta().getGen1();
+		return this.getUserGen1(this);
 	}
 	/**
 	 * 获取用户user的群G1的生成元gen1
@@ -198,9 +198,9 @@ public class Users implements Serializable {
 	 * @author: YYB
 	 * @Time: 下午7:22:42
 	 */
-	public BigInteger getUserGen1(Users user)
+	public Element getUserGen1(Users user)
 	{
-		return user.getPublicMeta().getGen1();
+		return user.getMyG1().newElementFromBytes(user.getPublicMeta().getGen1().toByteArray()).getImmutable();
 	}
 	/**
 	 * 获得用户自己的密钥
@@ -208,12 +208,12 @@ public class Users implements Serializable {
 	 * @author: YYB
 	 * @Time: 下午7:20:13
 	 */
-	public BigInteger getMySk()
+	public Element getMySk()
 	{
 		ObjectInputStream ois = null;
 		try {
 			ois = new ObjectInputStream(new FileInputStream(BaseParams.skPath + this.getUserId() + ".sk"));
-			BigInteger sk = (BigInteger) ois.readObject();
+			Element sk = this.getMyZn().newElementFromBytes(((BigInteger) ois.readObject()).toByteArray());
 			System.out.println("成功获得密钥！惊喜吧！");
 			return sk;
 		} catch (IOException | ClassNotFoundException e) {
@@ -385,11 +385,13 @@ public class Users implements Serializable {
 			Field G2 = pairing.getG2();
 			Field Zn = pairing.getZr();					
 			
-			BigInteger gen1 = new BigInteger(G1.newRandomElement().toBytes());		//群G1的生成元
-			BigInteger gen2 = new BigInteger(G2.newRandomElement().toBytes());		//群G2的生成元
+			BigInteger gen1 = new BigInteger(G1.newRandomElement().getImmutable().toBytes());		//群G1的生成元
+			BigInteger gen2 = new BigInteger(G2.newRandomElement().getImmutable().toBytes());		//群G2的生成元
 			
-			BigInteger sk = new BigInteger(Zn.newRandomElement().toBytes());	//密钥
-			BigInteger pk = new BigInteger(G2.newElementFromBytes(gen2.toByteArray()).pow(sk).toBytes());//公钥
+			BigInteger sk = new BigInteger(Zn.newRandomElement().getImmutable().toBytes());	//密钥
+			BigInteger pk = new BigInteger(G2.newElementFromBytes(gen2.toByteArray())
+					.getImmutable().powZn(Zn.newElementFromBytes(sk.toByteArray()).getImmutable())
+					.toBytes());//公钥
 			
 			this.publicMeta =  new PublicMeta(gen1, gen2, pk);
 			
@@ -432,7 +434,7 @@ public class Users implements Serializable {
 		for (int i = 0 ; i < FileUtils.getBlockNumOfFile(filename) ; i++)
 		{
 			key = new Integer(i);
-			value = Zn.newRandomElement();
+			value = Zn.newRandomElement().getImmutable();
 			challenge.put(key, value);
 		}
 		System.out.println("挑战产生成功！");
@@ -449,10 +451,10 @@ public class Users implements Serializable {
 	 */
 	public boolean verify(Map<Integer, Element> challenge , Element[] proof , Users user)
 	{
-		Element left = proof[1].mul(user.getMyPairing().pairing(user.getMyG1().newOneElement(),
-				user.getMyG2().newElementFromBytes(user.getMyPk().toByteArray())));
-		Element right = user.getMyPairing().pairing(proof[0], 
-				user.getMyG2().newElementFromBytes(user.getMyGen2().toByteArray()));
+		Element left = proof[1].duplicate().mulZn(user.getMyPairing().pairing(user.getMyG1()
+				.newOneElement().duplicate(),user.getMyPk().duplicate()));
+		Element right = user.getMyPairing().pairing(proof[0].duplicate(), 
+				user.getMyGen2().duplicate());
 		return left.isEqual(right);
 	}
 	//===========================服务器工作区=======================
@@ -468,22 +470,21 @@ public class Users implements Serializable {
 	public Element[] genProof(Map<Integer, Element> challenge , String filename ,Users user)
 	{
 		Element TP = null;
-		BigInteger[] tags = FileUtils.genTagsOfFile(filename, user);
+		Element[] tags = FileUtils.genTagsOfFile(filename, user);
 		Element[] blocks = FileUtils.getBlockDatasFromFile(filename, user.getMyZn());
-		TP = user.getMyG1().newElementFromBytes(tags[0].toByteArray())
-				.pow(new BigInteger(challenge.get(new Integer(0)).toBytes()));
-		for (int i = 1 ; i < tags.length ; i++){
-			TP = TP.mul(user.getMyG1().newElementFromBytes(tags[i].toByteArray())
-				.pow(new BigInteger(challenge.get(new Integer(i)).toBytes())));
+		TP = user.getMyG1().newOneElement().getImmutable().duplicate()
+				.powZn(user.getMyZn().newOneElement().getImmutable().duplicate());
+		for (int i = 0 ; i < tags.length ; i++){
+			TP = TP.mul(tags[i].duplicate().powZn(challenge.get(new Integer(i))).duplicate());
 		}
-		Element MP = blocks[0].mul(challenge.get(new Integer(0)));
-		for (int i = 1 ; i < tags.length ; i++){
-			MP = MP.add(blocks[i].mul(challenge.get(new Integer(i))));
+		Element MP = user.getMyZn().newOneElement().getImmutable().duplicate()
+				.mul(user.getMyZn().newOneElement().getImmutable().duplicate());
+		for (int i = 0 ; i < tags.length ; i++){
+			MP = MP.add(blocks[i].duplicate().mulZn(challenge.get(new Integer(i))).duplicate());
 		}
 		Element DP = user.getMyPairing()
-				.pairing(user.getMyG1().newElementFromBytes(user.getMyGen1().toByteArray()), 
-						user.getMyG2().newElementFromBytes(user.getMyPk().toByteArray()))
-				.pow(new BigInteger(MP.toBytes()));
+				.pairing(user.getMyGen1().getImmutable(), 
+						user.getMyPk().getImmutable()).powZn(MP.getImmutable());
 		return new Element[]{TP,DP};
 	}
 	//=====================测试区==================
@@ -491,7 +492,7 @@ public class Users implements Serializable {
 	{
 		Users user = UsersRegister.getUserFronDBById(8);
 		System.out.println(user);
-//		user.genParamAndSave();
+		user.genParamAndSave();
 		String filename = "test.avi";
 		int num = FileUtils.getBlockNumOfFile(filename);
 		System.out.println("一共有" + num + "块数据块！");
@@ -502,13 +503,15 @@ public class Users implements Serializable {
 		{
 			System.out.println("数据块" + i + ": " + blocks[i]);
 		}
+		
+		
 	}
 	public static void test1()
 	{
 		Users user = UsersRegister.getUserFronDBById(8);
 		System.out.println(user);
-		String filename = "test.avi";
-		BigInteger[] tags = FileUtils.genTagsOfFile(filename, user);
+		String filename = "test";
+		Element[] tags = FileUtils.genTagsOfFile(filename, user);
 		System.out.println("生成标签成功");
 		for ( int i = 0 ; i < tags.length ; i++)
 		{
@@ -519,7 +522,7 @@ public class Users implements Serializable {
 	{
 		Users user = UsersRegister.getUserFronDBById(8);
 		System.out.println(user);
-		String filename = "test.avi";
+		String filename = "test";
 		Field Zn = user.getMyZn();
 		Map challenge = user.genChallenge(filename, Zn);
 		System.out.println("获取挑战成功！");
@@ -536,26 +539,45 @@ public class Users implements Serializable {
 	public static void test3()
 	{
 		Users user = UsersRegister.getUserFronDBById(8);
-		System.out.println(user);
+		System.out.println("用户：" + user);
 		Pairing pairing = user.getMyPairing();
-		Element in1 = pairing.getG1().newRandomElement();
-		Element in2 = pairing.getG2().newRandomElement();
+		Element in1 = pairing.getG1().newRandomElement().getImmutable();
+		Element in2 = pairing.getG2().newRandomElement().getImmutable();
 		
 		Element out1 = pairing.pairing(in1, in2);
-		Element rand = pairing.getZr().newRandomElement();
+		Element rand = pairing.getZr().newRandomElement().getImmutable();
 		BigInteger big = new BigInteger(rand.toBytes());
 		Element out2 = pairing.pairing(in1.powZn(rand), in2);
 		Element out3 = pairing.pairing(in1, in2.powZn(rand));
-		System.out.println(out2.equals(out3));
+		System.out.println("out2和out3是否相等：" + out2.equals(out3));
 		BigInteger big1 = new BigInteger(out2.toBytes());
 		BigInteger big2 = new BigInteger(out3.toBytes());
-		System.out.println(big1);
-		System.out.println(big2);
-		System.out.println(big1.equals(big2));
+		System.out.println("big1: " + big1);
+		System.out.println("big2: " + big2);
+		System.out.println("big1==big2?" + big1.equals(big2));
 		
 	}
 	public static void main(String[] args) {
-		test3();
+		test2();
+//		Users user = UsersRegister.getUserFronDBById(8);
+//		System.out.println(user);
+//		Pairing pairing2 = user.getMyPairing();
+//		PairingFactory.getInstance().setUsePBCWhenPossible(true);
+//		Pairing pairing = PairingFactory.getPairing(BaseParams.paramPath + user.getUserId() + "param.properties");
+//		System.out.println(pairing.equals(pairing2));
+//		PairingFactory.getInstance().setUsePBCWhenPossible(true);
+//		Pairing pairing3 = PairingFactory.getPairing(BaseParams.paramPath + user.getUserId() + "param.properties");
+//		System.out.println(pairing.equals(pairing3));
+//		System.out.println(pairing2.equals(pairing3));
+//		System.out.println("==========G1============");
+//		Field G11 = pairing.getG1();
+//		Field G21 = pairing2.getG1();
+//		Field G31 = pairing3.getG1();
+//		System.out.println(G11.equals(G21));
+//		System.out.println(G11.equals(G31));
+//		System.out.println(G21.equals(G31));
+//		System.out.println("===========pairing映射=========");
+		
 	}
 }
 
