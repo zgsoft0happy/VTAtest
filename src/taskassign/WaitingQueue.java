@@ -32,12 +32,11 @@ public class WaitingQueue implements Serializable {
 	 * @Time: 上午10:44:13
 	 */
 	public Map<DataOwner, List<VerifyBlock>> getWaitingBlock(){
-		if (this.waitingBlocks != null)
+		if (this.waitingBlocks == null)
 		{
-			return this.waitingBlocks;
+			this.waitingBlocks = new HashMap<>();
 		}
-		Map<DataOwner, List<VerifyBlock>> newwaitingBlocks = new HashMap<>();
-		return newwaitingBlocks;
+		return this.waitingBlocks;
 	}
 	
 	

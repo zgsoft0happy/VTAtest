@@ -11,6 +11,8 @@ import java.io.Serializable;
 import java.lang.reflect.GenericArrayType;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -482,7 +484,7 @@ public class DataOwner implements Serializable {
 		Element g1 = owner.getPublicMeta().getGen1();
 		Field Zn = owner.getPairing().getZr();
 		Element sk = owner.getMySk();
-		String filename = "test";
+		String filename = "Test1.rar";
 //		Element[] tags = owner.getTagsOfFileFromFile(filename);
 //		owner.saveTagsToTagFile(filename);
 //		System.out.println("打印标签：");
@@ -505,20 +507,39 @@ public class DataOwner implements Serializable {
 //		}
 //		
 		//产生挑战
-		Map<Integer, Element> challenge = owner.challenge(42,filename, owner);
+		int seed = FileUtils.getBlocksNumOfFile(filename);
+		int num = new Random().nextInt(seed);
+		System.out.println("需要校验：" + num + "块");
+		Map<Integer, Element> challenge = owner.challenge(num,filename, owner);
 		Element[] proof = CloudServerProvider.getInstance().genProProof(filename, owner, challenge);
 		boolean result = owner.verify(challenge, proof, owner);
 		System.out.println("校验结果：" + result);
 		long time = System.currentTimeMillis() - start;
 		System.out.println(time);
+		
+		//下面是将校验块数和教研所用时间记录下来。
+		try {
+			Statement stmt = JdbcUtils.getConn().createStatement();
+			String sql = "insert into t_time(num , time) values('" + num + "','" + time + "')";
+			int changeNum = stmt.executeUpdate(sql);
+			System.out.println("成功插入" + changeNum + "行执行时间！");
+			stmt.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	
 	public static void main(String[] args) {
-		for(int i = 0 ; i < 5 ; i++)
+		Long start = System.currentTimeMillis();
+		for(int i = 0 ; i < 70 ; i++)
 		{
 			test();
+			System.out.println("\n");
 		}
+		Long end = System.currentTimeMillis();
+		System.out.println("一共用时：" + (end - start));
 	}
 	
 }
