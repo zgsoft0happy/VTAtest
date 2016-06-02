@@ -2,7 +2,9 @@ package statistics;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import newtest1.DataOwner;
 import taskassign.ActiveQueue;
@@ -24,23 +26,26 @@ public class AvgTime implements Serializable {
 
 	public static final long serialVersionUID = 1L;
 	
-	private static final int AVGTIME = 100;
+	public static final double a = 0.8;	//分配比例，按照时间确定
+	public static final int AVGTIME = (int) (100 * a);
 	
-	/**
-	 * 还没写完，实在不想写了，干点别的吧！
-	 * @param queue
-	 * @param owner
-	 * @param time
-	 * @return
-	 * @author: YYB
-	 * @Time: 下午4:31:53
-	 */
-	public List<VerifyBlock> getTask(ActiveQueue queue , DataOwner owner , long time)
-	{
-		List<VerifyBlock> task = new ArrayList<>();
-		int num = (int) (time / AVGTIME);
-		
-		return null;
-	}
+//	/**
+//	 * 还没写完，实在不想写了，干点别的吧！
+//	 * @param queue
+//	 * @param owner
+//	 * @param time
+//	 * @return
+//	 * @author: YYB
+//	 * @Time: 下午4:31:53
+//	 */
+//	public List<VerifyBlock> getTask(ActiveQueue queue , DataOwner owner , long time)
+//	{
+//		List<VerifyBlock> task = new ArrayList<>();
+//		int num = (int) (time / AVGTIME);
+//		//需找前num个的
+//		List<Long> subList = queue.getPriorityList().subList(0, num-1);
+//		Map map = new HashMap<>();
+//		return null;
+//	}
 }
 

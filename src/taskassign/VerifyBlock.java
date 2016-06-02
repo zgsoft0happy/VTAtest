@@ -25,6 +25,7 @@ public class VerifyBlock implements Serializable {
 	private int worth;			//数据块的价值，用户自己设定。
 	private int ownerId;		//请求校验的用户ID
 	private long time;			//校验可用时间。毫秒级。
+	private double priority;	//数据块的优先级，初始值默认为0。
 	/**
 	 * @return the serialversionuid
 	 */
@@ -61,13 +62,19 @@ public class VerifyBlock implements Serializable {
 	public long getTime() {
 		return time;
 	}
+	/**
+	 * @return the priority
+	 */
+	public double getPriority() {
+		return priority;
+	}
+	/**
+	 * @param priority the priority to set
+	 */
+	public void setPriority(double priority) {
+		this.priority = priority;
+	}
 
-	
-	
-	
-	
-	
-	
 	
 	
 	

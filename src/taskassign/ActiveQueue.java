@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import newtest1.DataOwner;
+import statistics.AvgTime;
 
 /**
  * <br/>CSDN主页：<a href="http://my.csdn.net/y1193329479">CSDN主页</a>
@@ -24,46 +25,135 @@ import newtest1.DataOwner;
 
 public class ActiveQueue implements Serializable {
 
-	private Map<Long, VerifyBlock> activeQueue;//数据块队列,Integer是指优先级。
-	private List<Long> priorityList ; 		//优先级顺序队列。
+	public static final long serialVersionUID = 1L;
 	
-	/**
-	 * 采用单列模式获得数据块集合。
-	 * @return
-	 * @author: YYB
-	 * @Time: 下午2:38:45
-	 */
-	public Map<Long, VerifyBlock> getActiveQueue()
+	private List<VerifyBlock> activeQueue = new ArrayList<>();
+	
+	public List<VerifyBlock> getActiveQueue()
 	{
 		if (this.activeQueue == null)
 		{
-			this.activeQueue = new HashMap<>();
-		}
+			this.activeQueue = new ArrayList<>();
+		}		
 		return this.activeQueue;
 	}
 	
 	/**
-	 * 采用单列模式获得优先级有序的索引集合。
+	 * 数据块从等待队列加入激活队列时，按照优先级直接排序。
+	 * @param block
 	 * @return
 	 * @author: YYB
-	 * @Time: 下午2:39:07
+	 * @Time: 下午1:57:41
 	 */
-	public List<Long> getPriorityList()
+	public List<VerifyBlock> add(VerifyBlock block)
 	{
-		if (this.priorityList == null)
+		int num = this.activeQueue.size();
+		for (int i = 0 ; i < num ; i++)
 		{
-			this.priorityList = new ArrayList<>();
+			if(block.getPriority() > this.activeQueue.get(i).getPriority())
+			{
+				this.activeQueue.add(i, block);
+				return this.activeQueue;
+			}
 		}
-		return this.priorityList;
+		this.activeQueue.add(num , block);
+		return this.activeQueue;
 	}
-
-	public List<VerifyBlock> assignTask(DataOwner owner , long time)//time是用户owner的截止时间。
+	
+	/**
+	 * 任务分配，最大化分配数量。
+	 * @param owner
+	 * @param time
+	 * @return
+	 * @author: YYB
+	 * @Time: 下午3:30:11
+	 */
+	public Map<Integer, List<VerifyBlock>> assignTask(DataOwner owner , long time)
 	{
+		int num = (int) (time / AvgTime.AVGTIME);
+		long newTime = time;
+		List<VerifyBlock> result = null;
+		for (int i = 0 ; i < num ; i++)
+		{
+			if (this.activeQueue.get(i).getTime() < newTime)
+			{
+				newTime = this.activeQueue.get(i).getTime();
+				num = (int) (newTime / AvgTime.AVGTIME);
+				if (num < i)
+				{
+					result = this.activeQueue.subList(0, i-1);
+					this.activeQueue.removeAll(result);
+//					return result;
+				}
+				if (num == i)
+				{
+					result = this.activeQueue.subList(0, i);
+					this.activeQueue.removeAll(result);
+//					return result;
+				}
+			}
+		}
+		//前边是最大化分配任务。后边是将任务中包含的数据块按照用户ID分类。
 		
-		return null;
+		Map<Integer, List<VerifyBlock>> map = new HashMap<>();
+		Integer ownerId = null;
+		for (int i = 0 ; i < result.size() ; i++)
+		{
+			ownerId = result.get(i).getOwnerId();
+			if (map.containsKey(ownerId))
+			{
+				map.get(ownerId).add(result.get(i));
+			}else
+			{
+				List<VerifyBlock> list = new ArrayList<>();
+				ownerId = result.get(i).getOwnerId();
+				list.add(result.get(i));
+				map.put(ownerId, list);
+			}
+		}
+		return map;
 	}
 	
-	
+//	private Map<Long, VerifyBlock> activeQueue;//数据块队列,Integer是指优先级。
+//	private List<Long> priorityList ; 		//优先级顺序队列。
+//	
+//	/**
+//	 * 采用单列模式获得数据块集合。
+//	 * @return
+//	 * @author: YYB
+//	 * @Time: 下午2:38:45
+//	 */
+//	public Map<Long, VerifyBlock> getActiveQueue()
+//	{
+//		if (this.activeQueue == null)
+//		{
+//			this.activeQueue = new HashMap<>();
+//		}
+//		return this.activeQueue;
+//	}
+//	
+//	/**
+//	 * 采用单列模式获得优先级有序的索引集合。
+//	 * @return
+//	 * @author: YYB
+//	 * @Time: 下午2:39:07
+//	 */
+//	public List<Long> getPriorityList()
+//	{
+//		if (this.priorityList == null)
+//		{
+//			this.priorityList = new ArrayList<>();
+//		}
+//		return this.priorityList;
+//	}
+//
+//	public List<VerifyBlock> assignTask(DataOwner owner , long time)//time是用户owner的截止时间。
+//	{
+//		
+//		return null;
+//	}
+//	
+//	
 	
 }
 
