@@ -1,9 +1,12 @@
 package taskassign;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import it.unisa.dia.gas.jpbc.Element;
 import newtest1.CloudServerProvider;
 import newtest1.DataOwner;
 import newtest1.JdbcUtils;
@@ -24,12 +27,45 @@ public class CSP implements Serializable {
 
 	public static final long serialVersionUID = 1L;
 	
-	public Map<Integer, Map> genProof(Map<Integer, List<VerifyBlock>> task , Map<Integer, Map> challenge)
+	
+	/**
+	 * 太复杂了。
+	 * @param task
+	 * @param challenge
+	 * @return
+	 * @author: YYB
+	 * @Time: 下午9:22:47
+	 */
+	public Map<Integer, Element[]> genProof(Map<Integer, List<VerifyBlock>> task , Map<Integer, Map> challenge)
 	{
-		DataOwner owner = JdbcUtils.getOwnerFromDB(2);
+//		DataOwner owner = JdbcUtils.getOwnerFromDB(2);
 		CloudServerProvider csp = new CloudServerProvider();
 //		csp.genProof(filename, owner, challenge)
-		return null;
+		Map<Integer, Element[]> proof = new HashMap<>();
+		Iterator<Integer> it = task.keySet().iterator();
+		for( ; it.hasNext() ; )
+		{
+//			Map<Integer, Element[]> map = new HashMap<>();	//证据集
+			Integer index = it.next();
+			List<VerifyBlock> list = task.get(index);	//获得所包含的单一用户的数据列表。
+			Map<VerifyBlock, Element> chal = challenge.get(index);	//针对同一用户的挑战。
+			Iterator<VerifyBlock> newIt = chal.keySet().iterator();
+			String filename = null;
+			Map<Integer , Element> newChal = new HashMap<>();
+			for(;it.hasNext();)
+			{
+				VerifyBlock block = newIt.next();
+				if(filename == null)
+				{
+					filename = block.getFilename();
+				}
+				newChal.put(new Integer(block.getIndex()), chal.get(block));
+			}
+			DataOwner owner = JdbcUtils.getOwnerFromDB(chal.keySet().iterator().next().getOwnerId());
+			Element[] xiaoProof = csp.genProof(filename, owner, newChal);
+			proof.put(index, xiaoProof);
+		}
+		return proof;
 	}
 }
 

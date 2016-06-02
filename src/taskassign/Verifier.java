@@ -1,9 +1,12 @@
 package taskassign;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import it.unisa.dia.gas.jpbc.Element;
 import newtest1.DataOwner;
+import newtest1.JdbcUtils;
 
 /**
  * <br/>CSDN主页：<a href="http://my.csdn.net/y1193329479">CSDN主页</a>
@@ -80,10 +83,36 @@ public class Verifier implements Serializable {
 		return "Verifier [verifier=" + verifier + ", remainNum=" + remainNum + ", remainTime=" + remainTime + "]";
 	}
 	
-	
-	public boolean verify(Map<Integer, Map<VerifyBlock,Element>> challenge)
+	/**
+	 * 不知道对不对。先这样吧。
+	 * @param challenge
+	 * @param proof
+	 * @return
+	 * @author: YYB
+	 * @Time: 下午9:46:54
+	 */
+	public Map<Integer, Boolean> verify(Map<Integer, Map<VerifyBlock,Element>> challenge , Map<Integer, Element[]> proof)
 	{
-		return false;
+		Iterator<Integer> it = challenge.keySet().iterator();
+		Map<Integer, Boolean> result = new HashMap<>();
+		for(;it.hasNext();)
+		{
+			Integer index = it.next();
+			Integer ownerId = challenge.get(index).keySet().iterator().next().getOwnerId();
+			Map<VerifyBlock, Element> chal = challenge.get(index);
+			Iterator<VerifyBlock> newIt = chal.keySet().iterator();
+			Map<Integer, Element> newChal = new HashMap<>();
+			for(;newIt.hasNext();)
+			{
+				Integer newIndex = newIt.next().getIndex();
+				newChal.put(newIndex, chal.get(newIndex));
+			}
+			Element[] xiaoProof = proof.get(index);
+			DataOwner owner = JdbcUtils.getOwnerFromDB(ownerId);
+			boolean newResult = verifier.verify(newChal, xiaoProof, owner);
+			result.put(index, new Boolean(newResult));
+		}
+		return result;
 	}
 	
 }

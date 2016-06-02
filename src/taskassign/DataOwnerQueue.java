@@ -73,9 +73,9 @@ public class DataOwnerQueue implements Serializable {
 	 * @author: YYB
 	 * @Time: 下午4:55:08
 	 */
-	public Map<Integer, Map> genChallenge(Map<Integer, List<VerifyBlock>> task)
+	public Map<Integer, Map<VerifyBlock , Element>> genChallenge(Map<Integer, List<VerifyBlock>> task)
 	{
-		Map<Integer, Map> challenge = new HashMap<>();
+		Map<Integer, Map<VerifyBlock , Element>> challenge = new HashMap<>();
 //		List ownerIds = task.keySet();
 		Iterator<Integer> it = challenge.keySet().iterator();
 		for ( ; it.hasNext() ; )
