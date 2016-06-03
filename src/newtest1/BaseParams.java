@@ -25,5 +25,8 @@ public class BaseParams implements Serializable {
 	public static final String pkPath = "pk\\user";			//公开信息保存路径
 	public static final String skPath = "sk\\user";			//密钥信息保存路径
 	public static final String tagPath = "tag\\tag";			//密钥信息保存路径
+	
+	
+	public static final double RATE = 0.3;			//检验抽取数据块比例。
 }
 

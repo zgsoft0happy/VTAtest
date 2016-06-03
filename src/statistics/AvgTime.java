@@ -26,7 +26,7 @@ public class AvgTime implements Serializable {
 
 	public static final long serialVersionUID = 1L;
 	
-	public static final double a = 0.8;	//分配比例，按照时间确定
+	public static final double a = 30.0;	//分配比例，按照时间确定
 	public static final int AVGTIME = (int) (100 * a);
 	
 //	/**
