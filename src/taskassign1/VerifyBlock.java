@@ -1,6 +1,7 @@
 package taskassign1;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import newtest1.DataOwner;
 
@@ -22,17 +23,19 @@ public class VerifyBlock implements Serializable {
 	
 	private String filename;	//文件名
 	private int index;		//块索引
-	private long time;		//截止时间。
+//	private long time;		//截止时间。
+	private Date deadline;		//截止时间
 	private int value;		//数据块的价值。
 	private DataOwner owner;	//所属用户。
 	private double priority;	//优先级
 	
 	public VerifyBlock() {}
-	public VerifyBlock(String filename, int index, long time, int value, DataOwner owner, double priority) {
+	public VerifyBlock(String filename, int index, /*long time*/ Date deadline, int value, DataOwner owner, double priority) {
 		super();
 		this.filename = filename;
 		this.index = index;
-		this.time = time;
+//		this.time = time;
+		this.deadline = deadline;
 		this.value = value;
 		this.owner = owner;
 		this.priority = priority;
@@ -62,16 +65,16 @@ public class VerifyBlock implements Serializable {
 		this.index = index;
 	}
 	/**
-	 * @return the time
+	 * @return the deadline
 	 */
-	public long getTime() {
-		return time;
+	public Date getDeadline() {
+		return deadline;
 	}
 	/**
-	 * @param time the time to set
+	 * @param deadline the deadline to set
 	 */
-	public void setTime(long time) {
-		this.time = time;
+	public void setDeadline(Date deadline) {
+		this.deadline = deadline;
 	}
 	/**
 	 * @return the value

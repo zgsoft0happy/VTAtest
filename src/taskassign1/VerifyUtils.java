@@ -2,6 +2,7 @@ package taskassign1;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -57,9 +58,10 @@ public class VerifyUtils implements Serializable {
 		{
 			index = random.nextInt(num);
 			time = random.nextInt(1000) + AvgTime.AVGTIME - 200;
+			Date deadline = new Date(System.currentTimeMillis() + time);
 			value = random.nextInt(20);
 			priority = random.nextDouble();
-			block = new VerifyBlock(filename, index, time, value, owner, priority);
+			block = new VerifyBlock(filename, index, deadline, value, owner, priority);
 			list.add(block);
 		}
 		return list;
@@ -250,6 +252,63 @@ public class VerifyUtils implements Serializable {
 			Proof p = proof.get(owner);
 			boolean r = verify(owner, chal, p);
 			result.put(owner, r);
+		}
+		return result;
+	}
+	
+	/**
+	 * 添加校验任务。
+	 * @param list
+	 * @param newRequirement
+	 * @return
+	 * @author: YYB
+	 * @Time: 下午2:02:24
+	 */
+	public static List<VerifyBlock> addNewRequirement(List<VerifyBlock> list ,
+			List<VerifyBlock> newRequirement)
+	{
+		List<VerifyBlock> newList = new ArrayList<>();
+		newList.add(newRequirement.get(0));
+		for(int i = 1 ; i < newRequirement.size() ; i++)
+		{
+			for (int j = 0 ; j < newList.size() ; j++)
+			{
+				if(newRequirement.get(i).getPriority() > newList.get(j).getPriority())
+				{
+					newList.add(j, newRequirement.get(i));
+					break;
+				}
+			}
+		}
+		int i = 0;
+		int j = 0;
+		List<VerifyBlock> result = new ArrayList<>();
+		while(i < newList.size() && j < list.size())
+		{
+			if(newList.get(i).getPriority() > list.get(j).getPriority())
+			{
+				result.add(newList.get(i));
+				i++;
+			}
+			else
+			{
+				result.add(list.get(j));
+				j++;
+			}
+		}
+		if(i < newList.size())
+		{
+			for(; i < newList.size();i++)
+			{
+				result.add(newList.get(i));
+			}
+		}
+		if(j < list.size())
+		{
+			for(; j < list.size(); j++)
+			{
+				result.add(list.get(j));
+			}
 		}
 		return result;
 	}

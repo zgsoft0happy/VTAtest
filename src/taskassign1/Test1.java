@@ -1,6 +1,7 @@
 package taskassign1;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -119,12 +120,12 @@ public class Test1 implements Serializable {
 		it = challenge.keySet().iterator();
 		for (; it.hasNext();) {
 			VerifyBlock block = it.next();
-			if (start + block.getTime() >= end) {
+			if (block.getDeadline().getTime() < end) {
 				count++;
 			}
 			// System.out.println("什么情况！");
 		}
-		System.out.println("未错失率为：" + (count * 1.0) / challenge.size());
+		System.out.println("错失率为：" + (count * 1.0) / challenge.size());
 	}
 
 	public static void test2() {
@@ -132,63 +133,69 @@ public class Test1 implements Serializable {
 		double rate = 0.2;
 		String filename = "Test1.rar";
 		DataOwner owner = JdbcUtils.getOwnerFromDB(2);
-		List<VerifyBlock> lists = VerifyUtils.genRequirement(filename, rate, owner);
+		List<VerifyBlock> lists = new ArrayList<>();
+		lists = VerifyUtils.addNewRequirement(lists, VerifyUtils.genRequirement(filename, rate, owner));
 //		filenames.put(owner, filename);
 		owner = JdbcUtils.getOwnerFromDB(3);
-		lists.addAll(VerifyUtils.genRequirement(filename, rate, owner));
+		lists = VerifyUtils.addNewRequirement(lists, VerifyUtils.genRequirement(filename, rate, owner));
 //		filenames.put(owner, filename);
 		owner = JdbcUtils.getOwnerFromDB(5);
-		lists.addAll(VerifyUtils.genRequirement(filename, rate, owner));
+		lists = VerifyUtils.addNewRequirement(lists, VerifyUtils.genRequirement(filename, rate, owner));
 //		filenames.put(owner, filename);
 		filename = "test1.txt";
 		owner = JdbcUtils.getOwnerFromDB(7);
-		lists.addAll(VerifyUtils.genRequirement(filename, rate, owner));
+		lists = VerifyUtils.addNewRequirement(lists, VerifyUtils.genRequirement(filename, rate, owner));
 //		filenames.put(owner, filename);
 		owner = JdbcUtils.getOwnerFromDB(11);
-		lists.addAll(VerifyUtils.genRequirement(filename, rate, owner));
+		lists = VerifyUtils.addNewRequirement(lists, VerifyUtils.genRequirement(filename, rate, owner));
 //		filenames.put(owner, filename);
 
+		Iterator<VerifyBlock> it = lists.iterator();
+		while(it.hasNext())
+		{
+			System.out.println("优先级：" + it.next().getPriority());
+		}
 		
-		Map<DataOwner, List<VerifyBlock>> map = VerifyUtils.getFilenames(lists);
-//		double rate = 0.2;
-		//挑战
-		Map<DataOwner, Map> challenge = VerifyUtils.batchChallenge(map);
-		Iterator<DataOwner> owners = challenge.keySet().iterator();
-		for (; owners.hasNext();) {
-			DataOwner newowner = owners.next();
-			Map<VerifyBlock, Element> chal = challenge.get(newowner);
-			Iterator<VerifyBlock> blocks = chal.keySet().iterator();
-			for (; blocks.hasNext();) {
-				VerifyBlock block = blocks.next();
-				System.out.println("用户" + newowner.getOwnerId() + "的文件" + block.getFilename() 
-					+ "的数据块。索引为：" + block.getIndex());
-				System.out.println("其对应的有挑战是：" + chal.get(block));
-				System.out.println();
-			}
-			System.out.println("--------------------------------------------------------");
-		}
-		//证据
-		Map<DataOwner, Proof> proof = VerifyUtils.batchProof(map, challenge);
-		owners = proof.keySet().iterator();
-		for ( ; owners.hasNext() ;)
-		{
-			DataOwner newOwner = owners.next();
-			Proof p = proof.get(newOwner);
-			System.out.println("用户" + newOwner.getOwnerId() + "的证据：");
-			System.out.println("TP:" + p.getTP() );
-			System.out.println("DP:" + p.getDP());
-			System.out.println();
-		}
-		//验证
-		Map<DataOwner,Boolean> result = VerifyUtils.batchVerify(challenge, proof);
-		owners = result.keySet().iterator();
-		for( ; owners.hasNext() ;)
-		{
-			DataOwner newowner = owners.next();
-			Boolean r = result.get(newowner);
-			System.out.println("用户" + newowner.getOwnerId() + "的需求的文件校验结果是：" 
-					+ result.get(newowner));
-		}
+//		Map<DataOwner, List<VerifyBlock>> map = VerifyUtils.getFilenames(lists);
+////		double rate = 0.2;
+//		//挑战
+//		Map<DataOwner, Map> challenge = VerifyUtils.batchChallenge(map);
+//		Iterator<DataOwner> owners = challenge.keySet().iterator();
+//		for (; owners.hasNext();) {
+//			DataOwner newowner = owners.next();
+//			Map<VerifyBlock, Element> chal = challenge.get(newowner);
+//			Iterator<VerifyBlock> blocks = chal.keySet().iterator();
+//			for (; blocks.hasNext();) {
+//				VerifyBlock block = blocks.next();
+//				System.out.println("用户" + newowner.getOwnerId() + "的文件" + block.getFilename() 
+//					+ "的数据块。索引为：" + block.getIndex());
+//				System.out.println("其对应的有挑战是：" + chal.get(block));
+//				System.out.println();
+//			}
+//			System.out.println("--------------------------------------------------------");
+//		}
+//		//证据
+//		Map<DataOwner, Proof> proof = VerifyUtils.batchProof(map, challenge);
+//		owners = proof.keySet().iterator();
+//		for ( ; owners.hasNext() ;)
+//		{
+//			DataOwner newOwner = owners.next();
+//			Proof p = proof.get(newOwner);
+//			System.out.println("用户" + newOwner.getOwnerId() + "的证据：");
+//			System.out.println("TP:" + p.getTP() );
+//			System.out.println("DP:" + p.getDP());
+//			System.out.println();
+//		}
+//		//验证
+//		Map<DataOwner,Boolean> result = VerifyUtils.batchVerify(challenge, proof);
+//		owners = result.keySet().iterator();
+//		for( ; owners.hasNext() ;)
+//		{
+//			DataOwner newowner = owners.next();
+//			Boolean r = result.get(newowner);
+//			System.out.println("用户" + newowner.getOwnerId() + "的需求的文件校验结果是：" 
+//					+ result.get(newowner));
+//		}
 	}
 
 	public static void main(String[] args) {

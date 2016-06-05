@@ -52,10 +52,10 @@ public class JdbcUtils implements Serializable {
 			
 			Class.forName(driver);
 			conn = DriverManager.getConnection(url, user, password);
-			System.out.println("成功获得数据块连接");
+			System.out.println("成功获得数据库连接");
 			return conn;
 		} catch (IOException | ClassNotFoundException | SQLException e) {
-			System.out.println("获取数据块连接失败！");
+			System.out.println("获取数据库连接失败！");
 			e.printStackTrace();
 		}
 		return null;
