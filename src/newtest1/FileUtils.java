@@ -60,7 +60,7 @@ public class FileUtils implements Serializable {
 				}
 			}
 			blocks[num - 1] = Zn.newElementFromHash(buffer , 0 , BaseParams.blockSize).getImmutable();
-			System.out.println("获取文件分块数据成功！");
+//			System.out.println("获取文件分块数据成功！");
 			return blocks;
 		} catch (IOException e) {
 			System.out.println("获得数据块数据时失败");
@@ -91,7 +91,7 @@ public class FileUtils implements Serializable {
 				tag = (BigInteger) ois.readObject();
 				tags[i] = Zn.newElementFromBytes(tag.toByteArray()).getImmutable();
 			}
-			System.out.println("成功读取标签！");
+//			System.out.println("成功读取标签！");
 			return tags;
 		} catch (IOException e) {
 			System.out.println("从标签文件中读取标签失败！");

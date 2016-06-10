@@ -8,7 +8,10 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
+
+import taskassign1.AssignParams;
 
 
 
@@ -52,7 +55,7 @@ public class JdbcUtils implements Serializable {
 			
 			Class.forName(driver);
 			conn = DriverManager.getConnection(url, user, password);
-			System.out.println("成功获得数据库连接");
+//			System.out.println("成功获得数据库连接");
 			return conn;
 		} catch (IOException | ClassNotFoundException | SQLException e) {
 			System.out.println("获取数据库连接失败！");
@@ -119,7 +122,7 @@ public class JdbcUtils implements Serializable {
 				DataOwner dataOwner = new DataOwner(rs.getInt("id"),
 						rs.getString("username"), rs.getString("password"),
 						rs.getInt("score"), rs.getString("remark"));
-				System.out.println("成功从数据库获得用户并返回！");
+//				System.out.println("成功从数据库获得用户并返回！");
 				return dataOwner;
 			}
 			System.out.println("数据库没有此用户！");
@@ -128,6 +131,130 @@ public class JdbcUtils implements Serializable {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	
+	
+	//==================价值和时间的记录到数据库===============
+	public static boolean savetimeAndValue(long time , int value)
+	{
+		try {
+			Statement stmt = getConn().createStatement();
+			String sql = "insert into t_value(time , value) values('" + time + "','" + value +"')";
+			int num = stmt.executeUpdate(sql);
+			return true;
+		} catch (SQLException e) {
+			System.out.println("插入时间和价值时出现错误！");
+			e.printStackTrace();
+		}
+		return false;
+	}
+	public static boolean savetimeAndValue1(long time , int value)
+	{
+		try {
+			Statement stmt = getConn().createStatement();
+			String sql = "insert into t_value(time1 , value1) values('" + time + "','" + value +"')";
+			int num = stmt.executeUpdate(sql);
+			return true;
+		} catch (SQLException e) {
+			System.out.println("插入时间和价值时出现错误！");
+			e.printStackTrace();
+		}
+		return false;
+	}
+	/**
+	 * 将校验的数量和校验时间保存到数据库。
+	 * @param num
+	 * @param time
+	 * @return
+	 * @author: YYB
+	 * @Time: 下午7:15:27
+	 */
+	public static boolean saveNumAndTime(int num , long time , double flag)
+	{
+		try {
+			Statement stmt = getConn().createStatement();
+			String sql = "insert into t_num_time(num , time , flag) "
+					+ "values('" + num + "','" + time + "','" + flag + "')";
+			int result = stmt.executeUpdate(sql);
+//			System.out.println("插入" + result + "行。");
+			return true;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * 将校验的数量和校验时间保存到数据库，以及是否满足时间。
+	 * @param num
+	 * @param time
+	 * @return
+	 * @author: YYB
+	 * @Time: 下午8:17:47
+	 */
+	public static boolean saveNumAndTime2(int num , long time ,	long theoryTime ,
+			byte result , double rate ,int value , double flag)
+	{
+		try {
+			Statement stmt = getConn().createStatement();
+			String sql = "insert into t_num_time2(num , time , theoryTime , result , rate ,"
+					+ " value , flag, deadlinewight , valuewight) values('" + num + "','" + 
+					time + "','" + theoryTime +	"','" + result + "','" + rate + "','" + 
+					value + "','" + flag + "','" +
+					AssignParams.deadlineWight + "','" + AssignParams.valueWight +"')";
+			int r = stmt.executeUpdate(sql);
+//			System.out.println("插入" + r + "行。");
+			return true;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
+	public static boolean saveNumAndTime3(int num , long time ,	long theoryTime ,
+			byte result , double rate ,int value , double missed)
+	{
+		try {
+			Statement stmt = getConn().createStatement();
+			String sql = "insert into t_num_time_rate(num , time , theoryTime ,  rate ,"
+					+ " value , missed ,result , deadlinewight , valuewight) values('" + 
+					num + "','" + time + "','" + theoryTime + "','" + rate + "','" + 
+					value + "','" + missed + "','" + result + "','" + 
+					AssignParams.deadlineWight + "','" + AssignParams.valueWight +"')";
+			int r = stmt.executeUpdate(sql);
+//			System.out.println("插入" + r + "行。");
+			return true;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	public static boolean saveNumAndTime32(int num , long time ,	long theoryTime ,
+			byte result , double rate ,int value , double missed)
+	{
+		try {
+			Statement stmt = getConn().createStatement();
+			String sql = "insert into t_num_time_rate2(num , time , theoryTime ,  rate ,"
+					+ " value , missed ,result , deadlinewight , valuewight) values('" + 
+					num + "','" + time + "','" + theoryTime + "','" + rate + "','" + 
+					value + "','" + missed + "','" + result + "','" + 
+					AssignParams.deadlineWight + "','" + AssignParams.valueWight +"')";
+			int r = stmt.executeUpdate(sql);
+//			System.out.println("插入" + r + "行。");
+			return true;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return false;
 	}
 	
 	//===============================================================================

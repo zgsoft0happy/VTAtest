@@ -54,17 +54,39 @@ public class VerifyUtils implements Serializable {
 		double priority;
 		VerifyBlock block = null;
 		int index;
+		long avg = (long) (AvgTime.AVGTIME * n) + 608; 
+//		System.out.println("avg: " + avg);
 		for (int i = 0 ; i < n ; i++)
 		{
 			index = random.nextInt(num);
-			time = random.nextInt(1000) + AvgTime.AVGTIME - 200;
+			time = random.nextInt((int)avg) + avg/2 ;
+//			System.out.println("time:" + time);
 			Date deadline = new Date(System.currentTimeMillis() + time);
 			value = random.nextInt(20);
 			priority = random.nextDouble();
-			block = new VerifyBlock(filename, index, deadline, value, owner, priority);
+			block = new VerifyBlock(filename, index,time , deadline, value, owner, priority);
 			list.add(block);
 		}
 		return list;
+	}
+	
+	
+	public static List<VerifyBlock> setTime(List<VerifyBlock> task , Date start ,
+			double rate , double expansion)
+	{
+		int num = (int) (task.size() * rate);
+		List<VerifyBlock> newTask = new ArrayList<>();
+		Random rand = new Random();
+		int avg = (int) ((AvgTime.AVGTIME * num + AvgTime.CONSTANT) * expansion);
+		for(int i = 0 ; i < num ; i++)
+		{
+			VerifyBlock block = task.get(i);
+			long time = rand.nextInt(avg) + avg / 2;
+			block.setTime(time);
+			block.setDeadline(new Date(start.getTime() + time));
+			newTask.add(block);
+		}
+		return newTask;
 	}
 	
 	/**
@@ -87,10 +109,18 @@ public class VerifyUtils implements Serializable {
 			Element v = Zn.newRandomElement().getImmutable();
 			challenge.put(block, v);
 		}
-		System.out.println("成功生成对文件" + list.get(0) + "的挑战！");
+//		System.out.println("成功生成对文件" + list.get(0).getFilename() + "的挑战！");
 		return challenge;
 	}
 	
+	/**
+	 * 来自同一个用户的校验任务的证据。
+	 * @param owner
+	 * @param challenge
+	 * @return
+	 * @author: YYB
+	 * @Time: 下午6:20:48
+	 */
 	public static Proof genProof(DataOwner owner , Map<VerifyBlock, Element> challenge)
 	{
 		int size = challenge.size();
@@ -111,7 +141,7 @@ public class VerifyUtils implements Serializable {
 			Element v = challenge.get(block);
 			TP = TP.mul(tag.duplicate().powZn(v.duplicate()));
 		}
-		System.out.println("TP:" + TP);		//标签证据。
+//		System.out.println("TP:" + TP);		//标签证据。
 		//下面是数据证据的产生。
 		Field Zn = pairing.getZr();
 		Element[] blocks = FileUtils.getBlockDataFromFile(filename, Zn);
@@ -126,11 +156,11 @@ public class VerifyUtils implements Serializable {
 			Element v = challenge.get(block);
 			MP = MP.add(v.duplicate().mul(data.duplicate()));
 		}
-		System.out.println("MP:" + MP);
+//		System.out.println("MP:" + MP);
 		Element gen1 = owner.getPublicMeta().getGen1().getImmutable();
 		Element pk = owner.getPublicMeta().getPk().getImmutable();
 		Element DP = pairing.pairing(gen1, pk).duplicate().powZn(MP.duplicate()).getImmutable();
-		System.out.println("DP:" + DP);		//数据证据。
+//		System.out.println("DP:" + DP);		//数据证据。
 		
 		
 		Proof proof = new Proof(TP, DP);
@@ -267,11 +297,13 @@ public class VerifyUtils implements Serializable {
 	public static List<VerifyBlock> addNewRequirement(List<VerifyBlock> list ,
 			List<VerifyBlock> newRequirement)
 	{
-		List<VerifyBlock> newList = new ArrayList<>();
+		List<VerifyBlock> newList = PriorityUtils.prioritySort(newRequirement);
+				/*new ArrayList<>();
 		newList.add(newRequirement.get(0));
 		for(int i = 1 ; i < newRequirement.size() ; i++)
 		{
-			for (int j = 0 ; j < newList.size() ; j++)
+			int j = 0;
+			for (j = 0 ; j < newList.size() ; j++)
 			{
 				if(newRequirement.get(i).getPriority() > newList.get(j).getPriority())
 				{
@@ -279,7 +311,11 @@ public class VerifyUtils implements Serializable {
 					break;
 				}
 			}
-		}
+			if (j==i)
+			{
+				newList.add(j , newRequirement.get(i));
+			}
+		}*/
 		int i = 0;
 		int j = 0;
 		List<VerifyBlock> result = new ArrayList<>();
@@ -311,6 +347,55 @@ public class VerifyUtils implements Serializable {
 			}
 		}
 		return result;
+	}
+	
+	public static List<VerifyBlock> addNewRequement1(List<VerifyBlock> task ,
+			List<VerifyBlock> newRequement)
+	{
+		task.addAll(newRequement);
+		return task;
+	}
+	
+//	public static void 
+	public static List<VerifyBlock> assignTask(List<VerifyBlock> queue)
+	{
+		List<VerifyBlock> task = new ArrayList<>();
+		int size = queue.size();
+		Date now = new Date();
+//		System.out.println("now " + now);
+		PriorityUtils.prioritySort(queue);
+		for(int i = 0 ; i < queue.size() ; i++)
+		{
+//			System.out.println(queue.get(i).getDeadline().getTime() - now.getTime());
+			if(!now.before(queue.get(i).getDeadline()))
+			{				
+				queue.remove(i);
+				i--;
+			}
+		}
+		int preIndex = 0;
+		int nowIndex = 0;
+		long maxTime = queue.get(0).getDeadline().getTime() - now.getTime();
+		long time = 0;
+		while (nowIndex < queue.size())
+		{
+			nowIndex++;
+			if(maxTime > queue.get(nowIndex).getDeadline().getTime() - now.getTime())
+			{
+				maxTime = queue.get(nowIndex).getDeadline().getTime() - now.getTime();
+			}
+			if (maxTime / AvgTime.AVGTIME >= (nowIndex + 1))
+			{
+				preIndex = nowIndex;
+			}else 
+			{
+				break;
+			}
+		}
+		task = queue.subList(0, preIndex);
+//		queue.removeAll(task);
+//		System.out.println(task.size());
+		return task;
 	}
 }
 

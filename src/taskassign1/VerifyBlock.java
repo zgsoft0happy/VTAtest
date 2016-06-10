@@ -23,18 +23,18 @@ public class VerifyBlock implements Serializable {
 	
 	private String filename;	//文件名
 	private int index;		//块索引
-//	private long time;		//截止时间。
+	private long time;		//截止时间。
 	private Date deadline;		//截止时间
 	private int value;		//数据块的价值。
 	private DataOwner owner;	//所属用户。
 	private double priority;	//优先级
 	
 	public VerifyBlock() {}
-	public VerifyBlock(String filename, int index, /*long time*/ Date deadline, int value, DataOwner owner, double priority) {
+	public VerifyBlock(String filename, int index, long time,Date deadline, int value, DataOwner owner, double priority) {
 		super();
 		this.filename = filename;
 		this.index = index;
-//		this.time = time;
+		this.time = time;
 		this.deadline = deadline;
 		this.value = value;
 		this.owner = owner;
@@ -81,6 +81,18 @@ public class VerifyBlock implements Serializable {
 	 */
 	public int getValue() {
 		return value;
+	}
+	/**
+	 * @return the time
+	 */
+	public long getTime() {
+		return time;
+	}
+	/**
+	 * @param time the time to set
+	 */
+	public void setTime(long time) {
+		this.time = time;
 	}
 	/**
 	 * @param value the value to set

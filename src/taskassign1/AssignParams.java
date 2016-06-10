@@ -18,7 +18,7 @@ public class AssignParams implements Serializable {
 
 	public static final long serialVersionUID = 1L;
 	
-	public static final int deadlineWight = 2;		//紧迫度的权重系数
+	public static final int deadlineWight = 1;		//紧迫度的权重系数
 	public static final int valueWight = 4;			//价值的权重系数。
 	
 }
