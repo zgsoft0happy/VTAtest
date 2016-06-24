@@ -42,20 +42,20 @@ public class Test1 implements Serializable {
 	public static void test1() {
 		// 插入几个用户
 		DataOwner owner = null;
-
-		// for(int i = 4 ; i < 13 ; i++)
-		// {
-		// JdbcUtils.register("owner" + i, "123456");
-		// System.out.println("用户owner" + i + "注册成功！");
-		// }
-
-		// 为用户生成参数。
-		// for (int i = 1 ; i < 13 ; i++)
-		// {
-		// owner = JdbcUtils.getOwnerFromDB(i);
-		// owner.genParamFileAndSave(owner);
-		// System.out.println("保存成功！" + i);
-		// }
+//
+//		for(int i = 1 ; i < 13 ; i++)
+//		{
+//		JdbcUtils.register("owner" + i, "123456");
+//		System.out.println("用户owner" + i + "注册成功！");
+//		}
+//
+//		// 为用户生成参数。
+//		for (int i = 1 ; i < 13 ; i++)
+//		{
+//		owner = JdbcUtils.getOwnerFromDB(i);
+//		owner.genParamFileAndSave(owner);
+//		System.out.println("保存成功！" + i);
+//		}
 
 		long start = System.currentTimeMillis();
 
@@ -553,7 +553,7 @@ public class Test1 implements Serializable {
 	}
 	
 	public static void main(String[] args) {
-		// test1();
+		 test1();
 		long start = System.currentTimeMillis();
 //
 //		test3();
@@ -575,16 +575,16 @@ public class Test1 implements Serializable {
 //			test6();
 //		}
 		
-		for(int i = 0 ; i < 20 ; i++)
-		{
-			System.out.println("第" + i + "轮");
-			test7();
-		}
-		for(int i = 0 ; i < 20 ; i++)
-		{
-			System.out.println("第" + i + "轮");
-			test8();
-		}
+//		for(int i = 0 ; i < 20 ; i++)
+//		{
+//			System.out.println("第" + i + "轮");
+//			test7();
+//		}
+//		for(int i = 0 ; i < 20 ; i++)
+//		{
+//			System.out.println("第" + i + "轮");
+//			test8();
+//		}
 		
 //		test7();
 		long end = System.currentTimeMillis();
