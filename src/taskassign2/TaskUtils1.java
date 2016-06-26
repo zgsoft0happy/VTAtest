@@ -8,6 +8,7 @@ import java.util.Random;
 
 import newtest1.DataOwner;
 import newtest1.FileUtils;
+import newtest1.JdbcUtils;
 import taskassign1.VerifyBlock;
 
 /**
@@ -27,8 +28,11 @@ public class TaskUtils1 implements Serializable {
 	public static final long serialVersionUID = 1L;
 	
 	public static final int MAXTIME = 1000;
-	public static final long EXPSCOPE = 40;
-	public static final long CONSTANT = 4000;
+	public static final long EXPSCOPE = 30;
+	public static final long CONSTANT = 10000;
+	
+	public static final int QUEUESIZE = 4;
+	
 	
 	public static List<Task> taskqueue = new ArrayList<>();
 	public static List<DataOwner> verifierqueue = new ArrayList<>();
@@ -125,22 +129,111 @@ public class TaskUtils1 implements Serializable {
 	 */
 	public static Task assignTask(DataOwner owner)
 	{
-		TaskUtils1.setPriority();
+//		TaskUtils1.setPriority();		//时间
+//		TaskUtils1.setPriority1();		//价值
+		TaskUtils1.setPriority2();
 		TaskUtils1.sortTask();
 		Task task = taskqueue.get(0);
-		taskqueue.remove(0);
+		taskqueue.remove(task);
 		return task;
 	}
 	
 	
-	
+	/**
+	 * 设置优先级，剔除已经超时的,按照时间
+	 * @return
+	 * @author: YYB
+	 * @Time: 上午11:07:09
+	 */
 	public static List<Task> setPriority()
 	{
 		long now = System.currentTimeMillis();
 		for (int i = 0 ; i < taskqueue.size() ; i++)
 		{
-			taskqueue.get(i).priority =
-					Math.log10(taskqueue.get(i).deadLine.getTime()- now);
+			long timedeta = taskqueue.get(i).deadLine.getTime()- now;
+			if (timedeta > 0)
+			{
+				taskqueue.get(i).priority =	10.0/Math.log10(timedeta);
+			}
+			else
+			{
+				JdbcUtils.insertEDFResult(taskqueue.get(i), true,0,0,0);
+				taskqueue.remove(i);
+				i--;
+				int ownerId = new Random().nextInt(11) + 1;
+				DataOwner owner = JdbcUtils.getOwnerFromDB(ownerId);
+				String fileName = "Test1.rar";
+				double rate = Math.random();
+				Task task = genTaskFromOwner(owner, fileName, rate);
+				taskqueue.add(task);
+			}
+		}
+		return taskqueue;
+	}
+	
+	/**
+	 * 设置优先级，剔除已经超时的,按照价值
+	 * @return
+	 * @author: YYB
+	 * @Time: 上午11:07:09
+	 */
+	public static List<Task> setPriority1()
+	{
+		long now = System.currentTimeMillis();
+		for (int i = 0 ; i < taskqueue.size() ; i++)
+		{
+			long timedeta = taskqueue.get(i).deadLine.getTime()- now;
+			if (timedeta > 0)
+			{
+				taskqueue.get(i).priority =
+						taskqueue.get(i).value/(taskqueue.get(i).blocks.size()+1);
+			}
+			else
+			{
+				JdbcUtils.insertHVFResult(taskqueue.get(i), true,0,0,0);
+				taskqueue.remove(i);
+				i--;
+				int ownerId = new Random().nextInt(11) + 1;
+				DataOwner owner = JdbcUtils.getOwnerFromDB(ownerId);
+				String fileName = "Test1.rar";
+				double rate = Math.random();
+				Task task = genTaskFromOwner(owner, fileName, rate);
+				taskqueue.add(task);
+			}
+		}
+		return taskqueue;
+	}
+	
+	/**
+	 * 设置优先级，剔除已经超时的,按照价值和时间的折衷，权重相等
+	 * @return
+	 * @author: YYB
+	 * @Time: 上午11:07:09
+	 */
+	public static List<Task> setPriority2()
+	{
+		long now = System.currentTimeMillis();
+		for (int i = 0 ; i < taskqueue.size() ; i++)
+		{
+			long timedeta = taskqueue.get(i).deadLine.getTime()- now;
+			if (timedeta > 0)
+			{
+				taskqueue.get(i).priority =
+						taskqueue.get(i).value/2*(taskqueue.get(i).blocks.size()+1)
+						+ 10.0/Math.log10(timedeta);
+			}
+			else
+			{
+				JdbcUtils.insertDPAResult(taskqueue.get(i), true,0,0,0);
+				taskqueue.remove(i);
+				i--;
+				int ownerId = new Random().nextInt(11) + 1;
+				DataOwner owner = JdbcUtils.getOwnerFromDB(ownerId);
+				String fileName = "Test1.rar";
+				double rate = Math.random();
+				Task task = genTaskFromOwner(owner, fileName, rate);
+				taskqueue.add(task);
+			}
 		}
 		return taskqueue;
 	}

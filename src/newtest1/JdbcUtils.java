@@ -12,6 +12,7 @@ import java.sql.Statement;
 import java.util.Properties;
 
 import taskassign1.AssignParams;
+import taskassign2.Task;
 
 
 
@@ -257,6 +258,87 @@ public class JdbcUtils implements Serializable {
 		return false;
 	}
 	
+	
+	
+	public static void insertEDFResult(Task task , boolean result , 
+			long tatoltime , int tatolbolocknum , int tatolvalue)
+	{
+		int num = task.blocks.size();
+		int value = task.value;
+		String result1 = "0";
+		if (result)
+		{
+			value = 0;
+			result1 = "1";
+		}
+		String sql = "insert into EDF_table(num , value , result,"
+				+ "tatoltime , tatolblocknum , tatolvalue) values('"
+				+ num + "','" + value + "','" + result1 
+				+ "','" + tatoltime + "','" + tatolbolocknum + "','"
+				+ tatolvalue + "')";
+		try {
+			Statement stmt = getConn().createStatement();
+			int n = stmt.executeUpdate(sql);
+			System.out.println("成功插入EDF_table中" + n + "条记录！");
+		} catch (SQLException e) {
+			System.out.println("插入EDF_table时出现错误！");
+			e.printStackTrace();
+		}
+	}
+	
+	
+	public static void insertHVFResult(Task task , boolean result , 
+			long tatoltime , int tatolbolocknum , int tatolvalue)
+	{
+		int num = task.blocks.size();
+		int value = task.value;
+		String result1 = "0";
+		if (result)
+		{
+			value = 0;
+			result1 = "1";
+		}
+		String sql = "insert into HVF_table(num , value , result,"
+				+ "tatoltime , tatolblocknum , tatolvalue) values('"
+				+ num + "','" + value + "','" + result1 
+				+ "','" + tatoltime + "','" + tatolbolocknum + "','"
+				+ tatolvalue + "')";
+		try {
+			Statement stmt = getConn().createStatement();
+			int n = stmt.executeUpdate(sql);
+			System.out.println("成功插入HVF_table中" + n + "条记录！");
+		} catch (SQLException e) {
+			System.out.println("插入HVF_table时出现错误！");
+			e.printStackTrace();
+		}
+	}
+	
+	public static void insertDPAResult(Task task , boolean result , 
+			long tatoltime , int tatolbolocknum , int tatolvalue)
+	{
+		int num = task.blocks.size();
+		int value = task.value;
+		String result1 = "0";
+		if (result)
+		{
+			value = 0;
+			result1 = "1";
+		}
+		String sql = "insert into DPA_table(num , value , result,"
+				+ "tatoltime , tatolblocknum , tatolvalue) values('"
+				+ num + "','" + value + "','" + result1 
+				+ "','" + tatoltime + "','" + tatolbolocknum + "','"
+				+ tatolvalue + "')";
+		try {
+			Statement stmt = getConn().createStatement();
+			int n = stmt.executeUpdate(sql);
+			System.out.println("成功插入DPA_table中" + n + "条记录！");
+		} catch (SQLException e) {
+			System.out.println("插入DPA_table时出现错误！");
+			e.printStackTrace();
+		}
+	}
+	
 	//===============================================================================
 	public static void test()
 	{
@@ -267,5 +349,6 @@ public class JdbcUtils implements Serializable {
 	public static void main(String[] args) {
 		test();
 	}
+
 }
 

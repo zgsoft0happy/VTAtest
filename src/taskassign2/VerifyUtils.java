@@ -122,6 +122,14 @@ public class VerifyUtils implements Serializable {
 		return proof;
 	}
 	
+	/**
+	 * 根据证据和挑战验证完整性
+	 * @param challenge
+	 * @param proof
+	 * @return
+	 * @author: YYB
+	 * @Time: 上午10:20:06
+	 */
 	public static boolean verify(Challenge challenge , Proof proof)
 	{
 		DataOwner owner = challenge.owner;
